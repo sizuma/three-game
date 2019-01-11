@@ -22,6 +22,12 @@
                 meshs: {},
             };
         },
+        created: function () {
+            setInterval(() => {
+                this.updateCells();
+                this.syncMesh();
+            }, 1);
+        },
         computed: {
             cellColumns: function () {
                 return this.width / this.cellSize;
@@ -58,7 +64,15 @@
             foreachCoordinate: function (f) {
                 for (let x = 0; x < this.cellColumns; x++) {
                     for (let y = 0; y< this.cellRows; y++) {
-                       f({x, y});
+                       f(x, y);
+                    }
+                }
+            },
+            foreachAroundCoordinate: function (x, y, f) {
+                for(let xOffset = -1; xOffset <= 1; xOffset++) {
+                    for(let yOffset = -1; yOffset <= 1; yOffset++) {
+                        if (xOffset === 0 && yOffset === 0) continue;
+                        f(x+xOffset, y+yOffset);
                     }
                 }
             },
@@ -72,6 +86,24 @@
                 const p = this.cameraPosition;
                 this.camera.position.set(p.x, p.y, p.z);
             },
+            isLiveCell: function (x, y) {
+                const key = this.keyfy(x, y);
+                return !!this.cells[key];
+            },
+            willAlive: function (x, y) {
+                const key = this.keyfy(x, y);
+                if (!(key in this.cells)) return false;
+                let alive = 0;
+                this.foreachAroundCoordinate(x, y, (nx, ny) => {
+                    if(this.isLiveCell(nx, ny)) alive++;
+                });
+                if (this.isLiveCell(x, y)) {
+                    return [2, 3].includes(alive);
+                } else {
+                    return alive === 3;
+                }
+
+            },
             init() {
                 this.scene = new THREE.Scene();
                 this.camera = new THREE.OrthographicCamera(0, this.width, 0, this.height, 1, 1000);
@@ -83,8 +115,7 @@
 
                 const meshs = {};
                 const cells = {};
-                this.foreachCoordinate(p => {
-                    const {x, y} = p;
+                this.foreachCoordinate((x, y) => {
                     const key = this.keyfy(x, y);
                     const isAlive = Math.floor(Math.random()*100) > 50;
                     meshs[key] = this.addCell(x, y, false);
@@ -92,14 +123,21 @@
                 });
                 this.meshs = meshs;
                 this.cells = cells;
-                this.syncMeth();
+                this.syncMesh();
             },
-            syncMeth: function () {
-                this.foreachCoordinate(p => {
-                    const {x, y} = p;
+            syncMesh: function () {
+                this.foreachCoordinate((x, y) => {
                     const key = this.keyfy(x, y);
                     this.meshs[key].material = this.cells[key] ? this.liveMaterial : this.deadMaterial;
                 });
+            },
+            updateCells: function () {
+                const cells = {};
+                this.foreachCoordinate((x, y) => {
+                    const key = this.keyfy(x, y);
+                    cells[key] = this.willAlive(x, y);
+                });
+                this.cells = cells;
             },
             animate() {
                 requestAnimationFrame(this.animate);
