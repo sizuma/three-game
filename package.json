@@ -1,0 +1,29 @@
+{
+  "name": "three-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "build-w": "webpack --watch",
+    "server": "http-server dist/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "babel-loader": "^8.0.5",
+    "http-server": "^0.11.1",
+    "vue-loader": "^15.5.1",
+    "vue-template-compiler": "^2.5.21",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
+  },
+  "dependencies": {
+    "three": "^0.100.0",
+    "vue": "^2.5.21",
+    "vue-router": "^3.0.2",
+    "vuetify": "^1.4.1"
+  }
+}
